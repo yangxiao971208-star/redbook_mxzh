@@ -1,0 +1,217 @@
+/* 全局样式定义 */
+:root {
+  /* 主题色彩 */
+  --primary-color: #A8071A; /* 复古红 */
+  --secondary-color: #F5F2E9; /* 米白 */
+  --text-color: #333333;
+  --light-text: #666666;
+  --border-color: #DDDDDD;
+  --background-color: #f5f5f5;
+  
+  /* 字体和间距 - 响应式变量 */
+  --font-main: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-size-small: 14px;
+  --font-size-medium: 16px;
+  --font-size-large: 18px;
+  --font-size-xlarge: 24px;
+  --spacing-xs: 8px;
+  --spacing-sm: 16px;
+  --spacing-md: 24px;
+  --spacing-lg: 32px;
+  --spacing-xl: 48px;
+  
+  /* 边框圆角 */
+  --border-radius-sm: 4px;
+  --border-radius-md: 8px;
+  --border-radius-lg: 12px;
+  
+  /* 容器最大宽度 */
+  --max-container-width: 800px;
+  --header-height: 60px;
+}
+
+/* 基础样式重置 */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: var(--font-main);
+  color: var(--text-color);
+  background-color: var(--background-color);
+  line-height: 1.6;
+  overflow-x: hidden;
+}
+
+/* 主容器样式 - 响应式 */
+.container {
+  max-width: var(--max-container-width);
+  margin: 0 auto;
+  padding: var(--spacing-sm);
+}
+
+/* 响应式间距和字体大小调整 */
+@media (max-width: 768px) {
+  :root {
+    --spacing-sm: 12px;
+    --spacing-md: 20px;
+    --spacing-lg: 28px;
+    --spacing-xl: 40px;
+    --font-size-medium: 15px;
+    --font-size-large: 17px;
+    --font-size-xlarge: 22px;
+  }
+}
+
+@media (max-width: 480px) {
+  :root {
+    --spacing-xs: 6px;
+    --spacing-sm: 10px;
+    --spacing-md: 16px;
+    --spacing-lg: 24px;
+    --spacing-xl: 32px;
+    --font-size-small: 13px;
+    --font-size-medium: 14px;
+    --font-size-large: 16px;
+    --font-size-xlarge: 20px;
+  }
+}
+
+/* 按钮基础样式 - 响应式 */
+button {
+  cursor: pointer;
+  border: none;
+  outline: none;
+  transition: all 0.3s ease;
+  touch-action: manipulation; /* 防止移动端双击缩放 */
+}
+
+button:disabled {
+  cursor: not-allowed;
+  opacity: 0.6;
+  transform: none !important; /* 禁用禁用状态下的变换 */
+}
+
+/* 输入框基础样式 - 响应式 */
+input {
+  border: 1px solid var(--border-color);
+  outline: none;
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-medium);
+  width: 100%;
+  transition: border-color 0.3s ease;
+}
+
+input:focus {
+  border-color: var(--primary-color);
+}
+
+/* 卡片样式 - 响应式 */
+.card {
+  background-color: white;
+  border-radius: var(--border-radius-lg);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: var(--spacing-md);
+  transition: box-shadow 0.3s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* 主按钮样式 - 响应式 */
+.btn-primary {
+  background-color: var(--primary-color);
+  color: white;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-medium);
+  font-weight: 500;
+  min-width: 120px;
+  text-align: center;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background-color: #8a0616;
+  transform: scale(0.98);
+}
+
+/* 次要按钮样式 - 响应式 */
+.btn-secondary {
+  background-color: white;
+  color: var(--primary-color);
+  border: 1px solid var(--primary-color);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-small);
+}
+
+.btn-secondary:hover {
+  background-color: var(--secondary-color);
+}
+
+/* 标签样式 */
+.tag {
+  display: inline-block;
+  background-color: var(--secondary-color);
+  color: var(--primary-color);
+  padding: var(--spacing-xs) var(--spacing-sm);
+  border-radius: var(--border-radius-sm);
+  font-size: var(--font-size-small);
+  cursor: pointer;
+  margin-right: var(--spacing-xs);
+  margin-bottom: var(--spacing-xs);
+}
+
+.tag:hover {
+  background-color: #e8e4d5;
+}
+
+/* 毛选原文样式 */
+.mao-text {
+  background-color: var(--secondary-color);
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-md);
+  font-family: 'SimSun', serif;
+  line-height: 1.8;
+  position: relative;
+}
+
+.vertical-text {
+  writing-mode: vertical-rl;
+  text-orientation: mixed;
+  padding: var(--spacing-lg) var(--spacing-sm);
+}
+
+@media (max-width: 768px) {
+  .vertical-text {
+    writing-mode: horizontal-tb;
+    text-orientation: mixed;
+  }
+}
+
+/* 加载动画 */
+.loading {
+  text-align: center;
+  padding: var(--spacing-lg);
+  color: var(--primary-color);
+}
+
+/* 分隔线 */
+.divider {
+  height: 1px;
+  background-color: var(--border-color);
+  margin: var(--spacing-md) 0;
+}
+
+/* 页脚 */
+.footer {
+  text-align: center;
+  padding: var(--spacing-md);
+  font-size: var(--font-size-small);
+  color: var(--light-text);
+  margin-top: var(--spacing-xl);
+}
