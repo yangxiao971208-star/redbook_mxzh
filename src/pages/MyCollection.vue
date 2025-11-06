@@ -1,5 +1,16 @@
 <template>
   <div class="collection-container container">
+    <!-- 删除确认弹窗 -->
+    <div v-if="showDeleteModal" class="modal-overlay" @click="cancelDelete">
+      <div class="modal-content" @click.stop>
+        <h3 class="modal-title">确认删除</h3>
+        <p class="modal-message">确定要删除这条{{ deleteType === 'collection' ? '收藏' : '历史记录' }}吗？</p>
+        <div class="modal-actions">
+          <button @click="confirmDelete" class="btn-primary delete-confirm">确定删除</button>
+          <button @click="cancelDelete" class="btn-secondary delete-cancel">取消</button>
+        </div>
+      </div>
+    </div>
     <header class="header">
       <button @click="goBack" class="back-button mobile-touch" title="返回首页">
         <span class="back-icon">←</span>
@@ -142,6 +153,9 @@ const router = useRouter()
 const activeTab = ref('collections')
 const collections = ref([])
 const history = ref([])
+const showDeleteModal = ref(false)
+const deleteItemId = ref(null)
+const deleteType = ref('') // 'collection' 或 'history'
 
 // 返回首页
 const goBack = () => {
@@ -165,18 +179,39 @@ const loadData = () => {
 
 // 删除收藏
 const deleteCollection = (id) => {
-  if (confirm('确定要删除这条收藏吗？')) {
-    collections.value = collections.value.filter(item => item.id !== id)
-    localStorage.setItem('collections', JSON.stringify(collections.value))
-  }
+  deleteItemId.value = id
+  deleteType.value = 'collection'
+  showDeleteModal.value = true
 }
 
 // 删除历史记录
 const deleteHistory = (id) => {
-  if (confirm('确定要删除这条历史记录吗？')) {
-    history.value = history.value.filter(item => item.id !== id)
+  deleteItemId.value = id
+  deleteType.value = 'history'
+  showDeleteModal.value = true
+}
+
+// 确认删除
+const confirmDelete = () => {
+  if (deleteType.value === 'collection') {
+    collections.value = collections.value.filter(item => item.id !== deleteItemId.value)
+    localStorage.setItem('collections', JSON.stringify(collections.value))
+  } else if (deleteType.value === 'history') {
+    history.value = history.value.filter(item => item.id !== deleteItemId.value)
     localStorage.setItem('history', JSON.stringify(history.value))
   }
+  
+  // 关闭弹窗
+  showDeleteModal.value = false
+  deleteItemId.value = null
+  deleteType.value = ''
+}
+
+// 取消删除
+const cancelDelete = () => {
+  showDeleteModal.value = false
+  deleteItemId.value = null
+  deleteType.value = ''
 }
 
 // 格式化时间
@@ -542,5 +577,70 @@ onMounted(() => {
 .list-leave-active {
   position: absolute;
   width: calc(100% - var(--spacing-md) * 2);
+}
+
+/* 弹窗样式 */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background-color: white;
+  padding: var(--spacing-md);
+  border-radius: var(--border-radius-lg);
+  width: 90%;
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-md);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.modal-title {
+  text-align: center;
+  color: var(--primary-color);
+  margin-bottom: var(--spacing-xs);
+  font-size: var(--font-size-large);
+}
+
+.modal-message {
+  text-align: center;
+  color: var(--text-color);
+  line-height: 1.6;
+  margin: 0;
+}
+
+.modal-actions {
+  display: flex;
+  gap: var(--spacing-sm);
+}
+
+.delete-confirm {
+  flex: 1;
+  background-color: #dc3545;
+  color: white;
+}
+
+.delete-confirm:hover {
+  background-color: #c82333;
+}
+
+.delete-cancel {
+  flex: 1;
+  background-color: #6c757d;
+  color: white;
+}
+
+.delete-cancel:hover {
+  background-color: #5a6268;
 }
 </style>

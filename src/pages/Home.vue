@@ -112,6 +112,58 @@
               📤 分享
             </button>
           </div>
+          
+          <!-- 用于生成分享卡片的隐藏容器 -->
+          <div ref="shareCardContainer" class="share-card-container" style="display: none;">
+            <div class="share-card">
+              <!-- 红色背景装饰 -->
+              <div class="share-card-red-bg"></div>
+              <div class="share-card-content-wrapper">
+                <!-- 标题 -->
+                <div class="share-card-title">
+                  有问题问毛选
+                </div>
+                
+                <!-- 分隔线 -->
+                <div class="share-card-divider"></div>
+                
+                <!-- 问题 -->
+                <div class="share-card-question">
+                  {{ question }}
+                </div>
+                
+                <!-- 分隔线 -->
+                <div class="share-card-divider"></div>
+                
+                <!-- 毛选原文 -->
+                <div class="share-card-quote">
+                  {{ result.quote }}
+                </div>
+                
+                <!-- 出处 -->
+                <div class="share-card-source">
+                  <span>信息出处</span>
+                  <br>
+                  {{ result.source }}
+                </div>
+                
+                <!-- 分隔线 -->
+                <div class="share-card-divider"></div>
+                
+                <!-- 解读 -->
+                <div class="share-card-explanation">
+                  {{ result.explanation }}
+                </div>
+                
+                <!-- 系统分享标记 -->
+                <div class="share-card-system-tag">系统分享</div>
+                
+                <!-- 底部装饰角 -->
+                <div class="corner-bottom-left"></div>
+                <div class="corner-bottom-right"></div>
+              </div>
+            </div>
+          </div>
         </div>
       </section>
     </main>
@@ -128,17 +180,25 @@
 
     <!-- 分享弹窗 -->
     <div v-if="showShareModal" class="modal-overlay" @click="closeShareModal">
-      <div class="modal-content" @click.stop>
-        <h3 class="modal-title">分享链接</h3>
-        <div class="share-link-container">
-          <input type="text" readonly :value="shareLink" class="share-link-input" />
-          <button @click="copyShareLink" class="btn-secondary">复制</button>
+      <div class="modal-content share-modal" @click.stop>
+        <h3 class="modal-title">分享内容</h3>
+        <div class="share-image-container">
+          <img v-if="shareImageUrl" :src="shareImageUrl" alt="分享卡片" class="share-image" />
+          <div v-else class="loading">
+            <div class="loading-text">正在生成分享卡片...</div>
+            <div class="loading-dots">
+              <span></span><span></span><span></span>
+            </div>
+          </div>
         </div>
-        <div class="share-qrcode">
-          <p>分享二维码</p>
-          <!-- 这里将来可以集成二维码生成 -->
-          <div class="qrcode-placeholder">二维码图片</div>
-        </div>
+        <button 
+          v-if="shareImageUrl" 
+          @click="downloadImage" 
+          class="btn-primary download-button"
+          title="下载分享卡片"
+        >
+          💾 下载分享卡片
+        </button>
         <button @click="closeShareModal" class="btn-primary full-width">关闭</button>
       </div>
     </div>
@@ -154,7 +214,7 @@
 </template>
 
 <script setup>
-import { ref, reactive, computed, onMounted } from 'vue'
+import { ref, reactive, computed, onMounted, nextTick } from 'vue'
 import { callMaoSelectionAPI, parseAIResponse, getAlternativeQuote } from '@/services/api'
 import { checkSensitiveWords, getSensitiveWordMessage } from '@/services/sensitiveFilter'
 
@@ -169,7 +229,8 @@ const result = reactive({
   error: ''
 })
 const showShareModal = ref(false)
-const shareLink = ref('')
+const shareImageUrl = ref('')
+const shareCardContainer = ref(null)
 
 // 热门标签
 const hotTags = [
@@ -306,25 +367,66 @@ const saveToHistory = () => {
   localStorage.setItem('history', JSON.stringify(history))
 }
 
-const shareResult = () => {
+const shareResult = async () => {
   if (!result.quote) return
   
-  // 生成分享链接
-  const baseUrl = window.location.origin
-  const encodedQuestion = encodeURIComponent(question.value)
-  shareLink.value = `${baseUrl}?q=${encodedQuestion}`
-  
   showShareModal.value = true
+  shareImageUrl.value = '' // 重置图片URL
+  
+  try {
+    // 等待DOM更新
+    await nextTick()
+    // 生成分享卡片
+    await generateShareCard()
+  } catch (error) {
+    console.error('生成分享卡片失败:', error)
+    alert('生成分享卡片失败，请稍后重试')
+  }
 }
 
-const copyShareLink = () => {
-  navigator.clipboard.writeText(shareLink.value)
-    .then(() => alert('链接已复制'))
-    .catch(() => alert('复制失败，请手动复制'))
+const generateShareCard = async () => {
+  // 导入html2canvas（动态导入以避免不必要的加载）
+  const html2canvas = (await import('html2canvas')).default
+  
+  // 确保容器可见以进行渲染
+  const container = shareCardContainer.value
+  container.style.display = 'block'
+  
+  // 使用html2canvas生成图片
+  const canvas = await html2canvas(container.querySelector('.share-card'), {
+    scale: 2, // 提高清晰度
+    useCORS: true,
+    logging: false,
+    backgroundColor: '#ffffff'
+  })
+  
+  // 将canvas转换为图片URL
+  shareImageUrl.value = canvas.toDataURL('image/png')
+  
+  // 再次隐藏容器
+  container.style.display = 'none'
+}
+
+const downloadImage = () => {
+  if (!shareImageUrl.value) return
+  
+  // 创建下载链接
+  const link = document.createElement('a')
+  link.href = shareImageUrl.value
+  link.download = `毛选智慧_${Date.now()}.png`
+  
+  // 触发下载
+  document.body.appendChild(link)
+  link.click()
+  document.body.removeChild(link)
+  
+  // 显示下载成功提示
+  alert('分享卡片已下载')
 }
 
 const closeShareModal = () => {
   showShareModal.value = false
+  shareImageUrl.value = '' // 清空图片URL
 }
 
 const containsSensitiveWords = (text) => {
@@ -608,6 +710,7 @@ onMounted(() => {
   justify-content: center;
   align-items: center;
   z-index: 1000;
+  overflow-y: auto;
 }
 
 .modal-content {
@@ -619,6 +722,7 @@ onMounted(() => {
   display: flex;
   flex-direction: column;
   gap: var(--spacing-md);
+  margin: 20px;
 }
 
 .modal-title {
@@ -627,31 +731,220 @@ onMounted(() => {
   margin-bottom: var(--spacing-xs);
 }
 
-.share-link-container {
+/* 分享弹窗样式 */
+.share-modal {
+  max-width: 500px;
+}
+
+.share-image-container {
   display: flex;
-  gap: var(--spacing-xs);
-}
-
-.share-link-input {
-  flex: 1;
-  padding: var(--spacing-xs);
-  font-size: var(--font-size-small);
-  background-color: var(--secondary-color);
-}
-
-.share-qrcode {
-  text-align: center;
-}
-
-.qrcode-placeholder {
-  width: 200px;
-  height: 200px;
-  background-color: var(--secondary-color);
-  margin: var(--spacing-sm) auto;
-  display: flex;
-  align-items: center;
   justify-content: center;
-  color: var(--light-text);
+  align-items: center;
+  min-height: 300px;
+  background-color: #f8f8f8;
+  border-radius: var(--border-radius-md);
+  overflow: hidden;
+}
+
+.share-image {
+  max-width: 100%;
+  max-height: 600px;
+  border-radius: var(--border-radius-sm);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.download-button {
+  background-color: #28a745;
+  color: white;
+  margin-top: var(--spacing-sm);
+}
+
+.download-button:hover {
+  background-color: #218838;
+}
+
+/* 分享卡片样式（用于生成图片） */
+.share-card-container {
+  position: absolute;
+  left: -9999px;
+  top: -9999px;
+  width: 500px;
+}
+
+.share-card {
+  width: 500px;
+  position: relative;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+/* 红色背景 */
+.share-card-red-bg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #a8071a;
+  z-index: 1;
+}
+
+/* 内容包装器 */
+.share-card-content-wrapper {
+  position: relative;
+  background-color: #ffffff;
+  border-radius: 12px;
+  margin: 15px;
+  padding: 25px;
+  z-index: 2;
+  min-height: 600px;
+}
+
+/* 装饰角 */
+.share-card-content-wrapper::before,
+.share-card-content-wrapper::after,
+.share-card-content-wrapper .corner-bottom-left,
+.share-card-content-wrapper .corner-bottom-right {
+  position: absolute;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background-color: #a8071a;
+  z-index: -1;
+}
+
+.share-card-content-wrapper::before {
+  content: '';
+  top: -10px;
+  left: -10px;
+}
+
+.share-card-content-wrapper::after {
+  content: '';
+  top: -10px;
+  right: -10px;
+}
+
+.share-card-content-wrapper .corner-bottom-left {
+  bottom: -10px;
+  left: -10px;
+}
+
+.share-card-content-wrapper .corner-bottom-right {
+  bottom: -10px;
+  right: -10px;
+}
+
+/* 标题样式 */
+.share-card-title {
+  text-align: center;
+  font-size: 32px;
+  font-weight: bold;
+  color: #a8071a;
+  margin-bottom: 15px;
+  letter-spacing: 1px;
+}
+
+/* 分隔线 */
+.share-card-divider {
+  height: 1px;
+  background: linear-gradient(to right, transparent, #a8071a, transparent);
+  margin: 15px 0;
+  opacity: 0.3;
+}
+
+/* 问题样式 */
+.share-card-question {
+  font-size: 28px;
+  font-weight: bold;
+  color: #a8071a;
+  text-align: center;
+  margin: 20px 0;
+  line-height: 1.4;
+}
+
+/* 毛选原文样式 */
+.share-card-quote {
+  font-family: 'SimSun', serif;
+  font-size: 18px;
+  line-height: 1.8;
+  color: #000000;
+  padding: 20px;
+  text-align: justify;
+  margin: 20px 0;
+}
+
+/* 出处样式 */
+.share-card-source {
+  text-align: right;
+  font-size: 16px;
+  color: #666666;
+  margin: 15px 0;
+  padding-right: 10px;
+}
+
+/* 解读样式 */
+.share-card-explanation {
+  font-size: 16px;
+  line-height: 1.6;
+  color: #333333;
+  margin: 20px 0;
+  text-align: justify;
+}
+
+/* 系统分享标记 */
+.share-card-system-tag {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background-color: #a8071a;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* 移动端响应式调整 */
+@media (max-width: 768px) {
+  .share-card-container {
+    width: 100%;
+    max-width: 400px;
+  }
+  
+  .share-card {
+    width: 100%;
+  }
+  
+  .share-card-content-wrapper {
+    margin: 10px;
+    padding: 20px;
+    min-height: 500px;
+  }
+  
+  .share-card-title {
+    font-size: 24px;
+  }
+  
+  .share-card-question {
+    font-size: 22px;
+  }
+  
+  .share-card-quote {
+    font-size: 16px;
+    padding: 15px;
+  }
+  
+  .share-card-explanation {
+    font-size: 15px;
+  }
+  
+  .share-modal {
+    width: 95%;
+    margin: 10px;
+  }
 }
 
 .full-width {
