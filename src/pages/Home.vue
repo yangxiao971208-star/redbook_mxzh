@@ -75,17 +75,19 @@
             <div class="quote-decoration-bottom"></div>
           </div>
           
+          <!-- 通俗解读 -->
+          <div class="explanation-section">
+            <h3 class="section-title">💡 解读</h3>
+            <p class="explanation-text">{{ result.explanation }}</p>
+          </div>
+
           <!-- 出处标注 -->
           <div class="source-section">
             <span class="source-label">📖 出处：</span>
             <span class="source-text">{{ result.source }}</span>
           </div>
           
-          <!-- 通俗解读 -->
-          <div class="explanation-section">
-            <h3 class="section-title">💡 解读</h3>
-            <p class="explanation-text">{{ result.explanation }}</p>
-          </div>
+
           
           <!-- 互动按钮 -->
           <div class="action-buttons">
@@ -206,9 +208,6 @@
     <!-- 免责声明 -->
     <footer class="footer">
       <p class="disclaimer">免责声明：本产品内容基于《毛泽东选集》公版文本，仅供学习交流使用，不代表任何官方立场。</p>
-      <div class="nav-links">
-        <router-link to="/collection" class="nav-link mobile-touch">我的收藏</router-link>
-      </div>
     </footer>
   </div>
 </template>
@@ -678,24 +677,29 @@ onMounted(() => {
 }
 
 .nav-bottom {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 100;
+  padding: var(--spacing-xs) 0;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  background-color: white;
   display: flex;
   justify-content: space-around;
-  background-color: white;
-  padding: var(--spacing-sm) 0;
-  border-top: 1px solid var(--border-color);
-  margin-bottom: var(--spacing-lg);
 }
 
 .nav-item {
+  flex: 1;
+  text-align: center;
+  padding: var(--spacing-sm) 0;
   text-decoration: none;
-  color: var(--primary-color);
+  color: #333;
   font-weight: 500;
-  padding: var(--spacing-xs) var(--spacing-md);
 }
 
-.nav-item:hover {
-  background-color: var(--secondary-color);
-  border-radius: var(--border-radius-sm);
+.nav-item:active {
+  background-color: #f5f5f5;
 }
 
 /* 弹窗样式 */
@@ -978,9 +982,38 @@ onMounted(() => {
   }
   
   .tags-section {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
     gap: var(--spacing-xs);
+    overflow-x: auto;
+    white-space: nowrap;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding-bottom: 5px;
+  }
+  
+  .tags-section::-webkit-scrollbar {
+    display: none;
+  }
+  
+  .tag {
+    display: inline-block;
+    flex-shrink: 0;
+    margin-right: 8px;
+    padding: 6px 12px;
+    font-size: 14px;
+    background-color: #f5f5f5;
+    border-radius: 16px;
+    border: 1px solid #e0e0e0;
+    color: #333;
+    transition: all 0.3s ease;
+  }
+  
+  .tag:hover, .tag:active {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
   }
   
   .vertical-text {
@@ -1014,6 +1047,22 @@ onMounted(() => {
     z-index: 100;
     padding: var(--spacing-xs) 0;
     box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+    background-color: white;
+    display: flex;
+    justify-content: space-around;
+  }
+  
+  .nav-item {
+    flex: 1;
+    text-align: center;
+    padding: var(--spacing-sm) 0;
+    text-decoration: none;
+    color: #333;
+    font-weight: 500;
+  }
+  
+  .nav-item:active {
+    background-color: #f5f5f5;
   }
   
   .footer {
@@ -1044,6 +1093,17 @@ onMounted(() => {
   .explanation-text {
     padding: var(--spacing-xs);
     font-size: var(--font-size-small);
+  }
+  
+  /* 小屏幕标签样式优化 */
+  .tags-section {
+    gap: 6px;
+  }
+  
+  .tag {
+    padding: 5px 10px;
+    font-size: 12px;
+    margin-right: 6px;
   }
 }
 </style>
